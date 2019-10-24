@@ -1,0 +1,24 @@
+name: Continuous Integration
+
+on: push
+
+jobs:
+  reproduction:
+    runs-on: ubuntu-latest
+    services:
+      firestore:
+        image: ridedott/firestore-emulator:latest
+        ports:
+          - 8080:8080
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 10
+      - run: npm ci
+      - run: |
+          for n in {1..256}; do sudo lsof -i :8080; sleep 5; done &
+          npx ts-node index.ts
